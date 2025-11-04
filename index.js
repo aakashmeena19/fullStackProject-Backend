@@ -30,46 +30,46 @@
 
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
+let cors = require('cors');
 const enquiryRouter = require('./App/routes/web/enquiryRoutes');
 require('dotenv').config();
 
-const app = express();
-
-// ✅ CORS configuration (important for frontend connection)
-app.use(
-  cors({
-    origin: [
-      "https://full-stack-project-frontend-gray.vercel.app", // ✅ your deployed frontend
-      "http://localhost:5173" // ✅ for local testing (optional)
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
+let app = express();
+app.use(cors());
 app.use(express.json());
 
-// ✅ Routes
-app.use('/api/website/enquiry', enquiryRouter);
-
-// ✅ Root route check
+// Root route
 app.get('/', (req, res) => {
-  res.send('✅ Backend is live and running successfully!');
+  res.send({
+    status: 1,
+    message: "API is running!",
+    endpoints: {
+      insert: "POST /api/website/enquiry/insert",
+      view: "GET /api/website/enquiry/view"
+    }
+  });
 });
 
-// ✅ MongoDB connection
+app.use('/api/website/enquiry', enquiryRouter);
+
+// MongoDB connection
 const db = process.env.DBURL;
 
 mongoose.connect(db)
   .then(() => {
     console.log("✅ Connected to MongoDB");
-
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-    });
   })
   .catch((err) => {
     console.error("❌ DB Connection Error:", err);
   });
+
+// Vercel ke liye export karo
+module.exports = app;
+
+// Local development ke liye
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server is running on port ${PORT}`);
+  });
+}
