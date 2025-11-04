@@ -26,4 +26,3 @@ mongoose.connect(db)
 .catch((err) => {
   console.error("❌ DB Connection Error:", err);
 });
-
